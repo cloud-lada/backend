@@ -18,6 +18,8 @@ spec:
                 - --blob-store-url=$(BLOB_STORE_URL)
               name: dumper
               envFrom:
+                - configMapRef:
+                    name: dumper
                 - secretRef:
                     name: dumper
               resources:

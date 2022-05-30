@@ -5,9 +5,14 @@ resources:
   - cronjob.yaml
 
 secretGenerator:
-  - envs:
+  - name: dumper
+    envs:
       - env/secret.env
-    name: dumper
+
+configMapGenerator:
+  - name: dumper
+    envs:
+      - env/config.env
 
 generatorOptions:
   disableNameSuffixHash: true
