@@ -3,11 +3,11 @@ kind: Kustomization
 
 images:
 - name: ghcr.io/cloud-lada/dumper
-  newTag: latest
+  newTag: v0.0.0
 - name: ghcr.io/cloud-lada/ingestor
-  newTag: latest
+  newTag: v0.0.0
 - name: ghcr.io/cloud-lada/persistor
-  newTag: latest
+  newTag: v0.0.0
 
 resources:
 - ingestor
