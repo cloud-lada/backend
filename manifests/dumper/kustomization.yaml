@@ -8,3 +8,6 @@ secretGenerator:
   - envs:
       - env/secret.env
     name: dumper
+
+generatorOptions:
+  disableNameSuffixHash: true
