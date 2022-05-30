@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dumper
+spec:
+  schedule: 0 6 * * *
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - image: ghcr.io/cloud-lada/dumper:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - /usr/bin/dumper
+              args:
+                - --database-url=$(DATABASE_URL)
+                - --blob-store-url=$(BLOB_STORE_URL)
+              name: dumper
+              envFrom:
+                - secretRef:
+                    name: dumper
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 100Mi
+                limits:
+                  cpu: 200m
+                  memory: 100Mi

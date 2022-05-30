@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- deployment.yaml
+
+configMapGenerator:
+- envs:
+  - env/config.env
+  name: persistor
+
+secretGenerator:
+- envs:
+  - env/secret.env
+  name: persistor
+
+generatorOptions:
+  disableNameSuffixHash: true

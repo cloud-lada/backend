@@ -1,0 +1,185 @@
+project_name: "backend"
+before:
+  hooks:
+    - make kustomize TAG={{ .Tag }}
+
+builds:
+  # INGESTOR
+  - id: ingestor
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X main.version={{ .Version }}"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    binary: "ingestor"
+    main: cmd/ingestor/main.go
+    hooks:
+      post:
+        - upx "{{ .Path }}"
+
+  # PERSISTOR
+  - id: persistor
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X main.version={{ .Version }}"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    binary: "persistor"
+    main: cmd/persistor/main.go
+    hooks:
+      post:
+        - upx "{{ .Path }}"
+
+  # DUMPER
+  - id: dumper
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X main.version={{ .Version }}"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    binary: "dumper"
+    main: cmd/dumper/main.go
+    hooks:
+      post:
+        - upx "{{ .Path }}"
+
+dockers:
+  # INGESTOR
+  - id: ingestor_linux_amd64
+    ids:
+      - ingestor
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/cloud-lada/ingestor:{{ .Tag }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--build-arg=BINARY=ingestor"
+
+  - id: ingestor_linux_arm64
+    ids:
+      - ingestor
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/cloud-lada/ingestor:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+      - "--build-arg=BINARY=ingestor"
+
+  # PERSISTOR
+  - id: persistor_linux_amd64
+    ids:
+      - persistor
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/cloud-lada/persistor:{{ .Tag }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--build-arg=BINARY=persistor"
+
+  - id: persistor_linux_arm64
+    ids:
+      - persistor
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/cloud-lada/persistor:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+      - "--build-arg=BINARY=persistor"
+
+  # DUMPER
+  - id: dumper_linux_amd64
+    ids:
+      - dumper
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/cloud-lada/dumper:{{ .Tag }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--build-arg=BINARY=dumper"
+
+  - id: dumper_linux_arm64
+    ids:
+      - dumper
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/cloud-lada/dumper:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+      - "--build-arg=BINARY=dumper"
+
+docker_manifests:
+  # INGESTOR
+  - name_template: "ghcr.io/cloud-lada/ingestor:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/cloud-lada/ingestor:{{ .Tag }}-amd64"
+      - "ghcr.io/cloud-lada/ingestor:{{ .Tag }}-arm64"
+
+  # PERSISTOR
+  - name_template: "ghcr.io/cloud-lada/persistor:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/cloud-lada/persistor:{{ .Tag }}-amd64"
+      - "ghcr.io/cloud-lada/persistor:{{ .Tag }}-arm64"
+
+  # DUMPER
+  - name_template: "ghcr.io/cloud-lada/dumper:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/cloud-lada/dumper:{{ .Tag }}-amd64"
+      - "ghcr.io/cloud-lada/dumper:{{ .Tag }}-arm64"
+
+archives:
+  - format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+release:
+  prerelease: auto
+  mode: replace
+  extra_files:
+    - glob: ./deploy.yaml
+
+changelog:
+  use: github
