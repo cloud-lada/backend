@@ -6,7 +6,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/gorilla/mux v1.8.0
 	github.com/spf13/cobra v1.1.3
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	gocloud.dev v0.25.0
 	gocloud.dev/pubsub/kafkapubsub v0.25.0
 	gocloud.dev/pubsub/natspubsub v0.25.0
