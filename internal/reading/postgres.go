@@ -15,6 +15,7 @@ type (
 		db *sql.DB
 	}
 
+	// The ForEachFunc type is a function invoked when calling PostgresRepository.ForEachOnDate.
 	ForEachFunc func(ctx context.Context, reading Reading) error
 )
 
