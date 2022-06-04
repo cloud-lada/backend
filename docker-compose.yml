@@ -1,7 +1,7 @@
 version: '3'
 services:
   ingestor:
-    image: ghcr.io/cloud-lada/ingestor:v0.1.0-alpha1
+    image: ghcr.io/cloud-lada/ingestor:v0.1.0-alpha7
     restart: on-failure
     command:
       - --event-writer-url=nats://readings
@@ -16,7 +16,7 @@ services:
       - nats
 
   persistor:
-    image: ghcr.io/cloud-lada/persistor:v0.1.0-alpha1
+    image: ghcr.io/cloud-lada/persistor:v0.1.0-alpha7
     restart: on-failure
     command:
       - --event-reader-url=nats://readings?queue=persistor
@@ -28,6 +28,19 @@ services:
     depends_on:
       - nats
       - ingestor
+      - postgres
+
+  api:
+    image: ghcr.io/cloud-lada/api:v0.1.0-alpha7
+    restart: on-failure
+    command:
+      - --port=5001
+      - --database-url=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    ports:
+      - "5001:5001"
+    networks:
+      - default
+    depends_on:
       - postgres
 
   postgres:
