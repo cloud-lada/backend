@@ -19,8 +19,6 @@ spec:
       containers:
         - image: ghcr.io/cloud-lada/api:latest
           imagePullPolicy: IfNotPresent
-          command:
-            - /usr/bin/api
           args:
             - --database-url=$(DATABASE_URL)
             - --port=$(PORT)
