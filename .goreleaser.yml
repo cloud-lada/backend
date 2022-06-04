@@ -64,6 +64,26 @@ builds:
       post:
         - upx "{{ .Path }}"
 
+  # API
+  - id: api
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X main.version={{ .Version }}"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    binary: "api"
+    main: cmd/api/main.go
+    hooks:
+      post:
+        - upx "{{ .Path }}"
+
 dockers:
   # INGESTOR
   - id: ingestor_linux_amd64
@@ -152,6 +172,35 @@ dockers:
       - "--platform=linux/arm64"
       - "--build-arg=BINARY=dumper"
 
+  # API
+  - id: api_linux_amd64
+    ids:
+      - api
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/cloud-lada/api:{{ .Tag }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--build-arg=BINARY=api"
+
+  - id: api_linux_arm64
+    ids:
+      - api
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/cloud-lada/api:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+      - "--build-arg=BINARY=api"
+
 docker_manifests:
   # INGESTOR
   - name_template: "ghcr.io/cloud-lada/ingestor:{{ .Tag }}"
@@ -170,6 +219,12 @@ docker_manifests:
     image_templates:
       - "ghcr.io/cloud-lada/dumper:{{ .Tag }}-amd64"
       - "ghcr.io/cloud-lada/dumper:{{ .Tag }}-arm64"
+
+  # API
+  - name_template: "ghcr.io/cloud-lada/api:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/cloud-lada/api:{{ .Tag }}-amd64"
+      - "ghcr.io/cloud-lada/api:{{ .Tag }}-arm64"
 
 archives:
   - format: zip
