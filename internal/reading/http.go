@@ -1,5 +1,4 @@
-// Package ingest provides the HTTP handling methods for inbound sensor readings.
-package ingest
+package reading
 
 import (
 	"context"
@@ -9,16 +8,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/gorilla/mux"
 )
 
 type (
-	// The Ingestor type is responsible for responding to HTTP requests to publish events onto an event sink and
-	// probing for liveness/readiness.
-	Ingestor struct {
+	// The HTTP type is responsible for handling HTTP requests and publishing events onto an event sink.
+	HTTP struct {
 		writer EventWriter
-		apiKey string
 		logger *log.Logger
 	}
 
@@ -26,40 +22,21 @@ type (
 	EventWriter interface {
 		Write(ctx context.Context, message json.RawMessage) error
 	}
-
-	// The Config type contains fields used to configure the Ingestor.
-	Config struct {
-		Writer EventWriter
-		APIKey string
-		Logger *log.Logger
-	}
 )
 
-// New returns a new instance of the Ingestor type that will publish Reading events onto the provided
-// EventWriter implementation to the desired subject. The Ingestor.Register method should be used to register
+// NewHTTP returns a new instance of the HTTP type that will publish Reading events onto the provided
+// EventWriter implementation to the desired subject. The HTTP.Register method should be used to register
 // the handling methods onto an HTTP router.
-func New(config Config) *Ingestor {
-	return &Ingestor{
-		writer: config.Writer,
-		apiKey: config.APIKey,
-		logger: config.Logger,
+func NewHTTP(events EventWriter, logger *log.Logger) *HTTP {
+	return &HTTP{
+		writer: events,
+		logger: logger,
 	}
 }
 
 // Ingest readings from the request body, publishing each onto the configured EventWriter. This method expects
 // the request body to contain a JSON stream of individual readings. Each reading is validated then published.
-// It expects basic authentication on the inbound request where the password matches the configured API key.
-func (h *Ingestor) Ingest(w http.ResponseWriter, r *http.Request) {
-	apiKey, _, ok := r.BasicAuth()
-	switch {
-	case !ok:
-		http.Error(w, "no credentials provided", http.StatusForbidden)
-		return
-	case apiKey != h.apiKey || apiKey == "":
-		http.Error(w, "invalid api key", http.StatusUnauthorized)
-		return
-	}
-
+func (h *HTTP) Ingest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	decoder := json.NewDecoder(r.Body)
 
@@ -73,7 +50,7 @@ func (h *Ingestor) Ingest(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, ctx.Err().Error(), http.StatusRequestTimeout)
 			return
 		default:
-			var request reading.Reading
+			var request Reading
 
 			// We decode each reading one-by-one to ensure their format is correct.
 			err := decoder.Decode(&request)
@@ -104,8 +81,8 @@ func (h *Ingestor) Ingest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Register the Ingestor's routes onto the HTTP router.
-func (h *Ingestor) Register(router *mux.Router) {
+// Register the HTTP's routes onto the HTTP router.
+func (h *HTTP) Register(router *mux.Router) {
 	router.HandleFunc("/ingest", h.Ingest).
 		Methods(http.MethodPost).
 		Headers("Content-Type", "application/stream+json")

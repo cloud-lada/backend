@@ -52,7 +52,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Run tests
-        run: go test -race ./...
+        run: go test -p 1 -race ./...
 
   vet:
     runs-on: ubuntu-20.04

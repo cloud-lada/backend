@@ -1,4 +1,4 @@
-package persist_test
+package reading_test
 
 import (
 	"context"
@@ -8,13 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cloud-lada/backend/internal/persist"
 	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestPersistor_HandleEvent(t *testing.T) {
+func TestEventHandler_HandleEvent(t *testing.T) {
 	t.Parallel()
 
 	tt := []struct {
@@ -59,12 +58,9 @@ func TestPersistor_HandleEvent(t *testing.T) {
 			ctx := context.Background()
 			readings := &MockRepository{err: tc.Error}
 
-			persistor := persist.New(persist.Config{
-				Logger:   log.New(io.Discard, "", log.Flags()),
-				Readings: readings,
-			})
+			handler := reading.NewEventHandler(readings, log.New(io.Discard, "", log.Flags()))
 
-			err := persistor.HandleEvent(ctx, tc.Data)
+			err := handler.HandleEvent(ctx, tc.Data)
 			if tc.ExpectsError {
 				assert.Error(t, err)
 				return
