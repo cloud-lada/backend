@@ -1,4 +1,4 @@
-package ingest_test
+package reading_test
 
 import (
 	"bytes"
@@ -10,27 +10,24 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cloud-lada/backend/internal/ingest"
 	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestIngestor_Ingest(t *testing.T) {
+func TestHTTP_Ingest(t *testing.T) {
 	t.Parallel()
 
 	tt := []struct {
-		Name           string
-		Readings       []reading.Reading
-		PublishError   error
-		ExpectedCode   int
-		ExpectedAPIKey string
+		Name         string
+		Readings     []reading.Reading
+		PublishError error
+		ExpectedCode int
 	}{
 		{
-			Name:           "It should accept valid readings and publish them",
-			ExpectedCode:   http.StatusOK,
-			ExpectedAPIKey: "ingestor-key",
+			Name:         "It should accept valid readings and publish them",
+			ExpectedCode: http.StatusOK,
 			Readings: []reading.Reading{
 				{
 					Sensor:    "speed",
@@ -45,21 +42,9 @@ func TestIngestor_Ingest(t *testing.T) {
 			},
 		},
 		{
-			Name:         "It should return unauthorized for an invalid API key",
-			ExpectedCode: http.StatusUnauthorized,
-			Readings: []reading.Reading{
-				{
-					Sensor:    "speed",
-					Value:     65,
-					Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
-				},
-			},
-		},
-		{
-			Name:           "It should return internal server error for publishing errors",
-			ExpectedCode:   http.StatusInternalServerError,
-			ExpectedAPIKey: "ingestor-key",
-			PublishError:   io.EOF,
+			Name:         "It should return internal server error for publishing errors",
+			ExpectedCode: http.StatusInternalServerError,
+			PublishError: io.EOF,
 			Readings: []reading.Reading{
 				{
 					Sensor:    "speed",
@@ -73,13 +58,7 @@ func TestIngestor_Ingest(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			sink := &MockEventWriter{err: tc.PublishError}
-			config := ingest.Config{
-				APIKey: tc.ExpectedAPIKey,
-				Writer: sink,
-				Logger: log.New(io.Discard, "", log.Flags()),
-			}
-
-			h := ingest.New(config)
+			h := reading.NewHTTP(sink, log.New(io.Discard, "", log.Flags()))
 
 			router := mux.NewRouter()
 			h.Register(router)
@@ -91,8 +70,7 @@ func TestIngestor_Ingest(t *testing.T) {
 			}
 
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodPost, "http://example.org/ingest", body)
-			r.SetBasicAuth(tc.ExpectedAPIKey, "")
+			r := httptest.NewRequest(http.MethodPost, "/ingest", body)
 			r.Header.Set("Content-Type", "application/stream+json")
 
 			router.ServeHTTP(w, r)

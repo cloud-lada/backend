@@ -1,15 +1,15 @@
-package ingest_test
+package reading_test
 
 import (
 	"context"
 	"encoding/json"
 
-	"github.com/cloud-lada/backend/internal/ingest"
+	"github.com/cloud-lada/backend/internal/reading"
 )
 
 type (
 	MockEventWriter struct {
-		ingest.EventWriter
+		reading.EventWriter
 
 		messages []MockMessage
 		err      error
@@ -18,6 +18,11 @@ type (
 	MockMessage struct {
 		Data []byte
 	}
+
+	MockRepository struct {
+		saved reading.Reading
+		err   error
+	}
 )
 
 func (m *MockEventWriter) Write(_ context.Context, message json.RawMessage) error {
@@ -25,5 +30,10 @@ func (m *MockEventWriter) Write(_ context.Context, message json.RawMessage) erro
 		Data: message,
 	})
 
+	return m.err
+}
+
+func (m *MockRepository) Save(ctx context.Context, reading reading.Reading) error {
+	m.saved = reading
 	return m.err
 }

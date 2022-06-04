@@ -9,8 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/cloud-lada/backend/internal/ingest"
+	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/cloud-lada/backend/pkg/event"
+	"github.com/cloud-lada/backend/pkg/middleware"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -38,13 +39,12 @@ func main() {
 			}
 
 			logger := log.Default()
+
 			router := mux.NewRouter()
-			ingestor := ingest.New(ingest.Config{
-				Writer: writer,
-				APIKey: apiKey,
-				Logger: logger,
-			})
-			ingestor.Register(router)
+			router.Use(middleware.APIKey(apiKey))
+
+			handler := reading.NewHTTP(writer, logger)
+			handler.Register(router)
 
 			svr := &http.Server{
 				Addr:    fmt.Sprint(":", port),

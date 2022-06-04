@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/cloud-lada/backend/internal/persist"
 	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/cloud-lada/backend/pkg/event"
 	"github.com/cloud-lada/backend/pkg/postgres"
@@ -43,14 +42,11 @@ func main() {
 				return fmt.Errorf("failed to create reader: %w", err)
 			}
 
-			persistor := persist.New(persist.Config{
-				Logger:   logger,
-				Readings: reading.NewPostgresRepository(db),
-			})
+			handler := reading.NewEventHandler(reading.NewPostgresRepository(db), logger)
 
 			grp, ctx := errgroup.WithContext(ctx)
 			grp.Go(func() error {
-				return reader.Read(ctx, persistor.HandleEvent)
+				return reader.Read(ctx, handler.HandleEvent)
 			})
 			grp.Go(func() error {
 				<-ctx.Done()
