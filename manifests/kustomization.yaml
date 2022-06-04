@@ -8,8 +8,11 @@ images:
   newTag: v0.0.0
 - name: ghcr.io/cloud-lada/persistor
   newTag: v0.0.0
+- name: ghcr.io/cloud-lada/api
+  newTag: v0.0.0
 
 resources:
 - ingestor
 - persistor
 - dumper
+- api
