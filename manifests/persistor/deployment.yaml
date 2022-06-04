@@ -22,7 +22,6 @@ spec:
           args:
             - --event-reader-url=$(EVENT_READER_URL)
             - --database-url=$(DATABASE_URL)
-            - --port=$(PORT)
           name: persistor
           envFrom:
             - configMapRef:
