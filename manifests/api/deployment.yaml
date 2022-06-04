@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels:
+    app: api
+spec:
+  selector:
+    matchLabels:
+      app: api
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - image: ghcr.io/cloud-lada/api:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/bin/api
+          args:
+            - --database-url=$(DATABASE_URL)
+            - --port=$(PORT)
+          name: api
+          envFrom:
+            - configMapRef:
+                name: api
+            - secretRef:
+                name: api
+          resources:
+            requests:
+              cpu: 200m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 100Mi
