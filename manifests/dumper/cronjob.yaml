@@ -12,8 +12,6 @@ spec:
           containers:
             - image: ghcr.io/cloud-lada/dumper:latest
               imagePullPolicy: IfNotPresent
-              command:
-                - /usr/bin/dumper
               args:
                 - --database-url=$(DATABASE_URL)
                 - --blob-store-url=$(BLOB_STORE_URL)

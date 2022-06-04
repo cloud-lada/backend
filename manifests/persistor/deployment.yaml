@@ -19,8 +19,6 @@ spec:
       containers:
         - image: ghcr.io/cloud-lada/persistor:latest
           imagePullPolicy: IfNotPresent
-          command:
-            - /usr/bin/persistor
           args:
             - --event-reader-url=$(EVENT_READER_URL)
             - --database-url=$(DATABASE_URL)

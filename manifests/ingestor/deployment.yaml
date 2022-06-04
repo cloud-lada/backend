@@ -19,8 +19,6 @@ spec:
       containers:
         - image: ghcr.io/cloud-lada/ingestor:latest
           imagePullPolicy: IfNotPresent
-          command:
-            - /usr/bin/ingestor
           args:
             - --event-writer-url=$(EVENT_WRITER_URL)
             - --api-key=$(API_KEY)
