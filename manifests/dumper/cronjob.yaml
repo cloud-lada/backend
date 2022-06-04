@@ -8,6 +8,7 @@ spec:
     spec:
       template:
         spec:
+          restartPolicy: OnFailure
           containers:
             - image: ghcr.io/cloud-lada/dumper:latest
               imagePullPolicy: IfNotPresent
