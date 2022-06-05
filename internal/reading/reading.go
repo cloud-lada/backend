@@ -21,8 +21,7 @@ func (r Reading) String() string {
 	return fmt.Sprint(r.Sensor, " ", r.Value, r.Timestamp)
 }
 
-// Valid returns true if the Reading is deemed to be in a valid state. This means a sensor name, a zero or
-// positive value and a non-zero timestamp.
+// Valid returns true if the Reading is deemed to be in a valid state. This means a sensor name and a non-zero timestamp.
 func (r Reading) Valid() bool {
-	return r.Sensor != "" && r.Value >= 0 && !r.Timestamp.IsZero()
+	return r.Sensor != "" && !r.Timestamp.IsZero()
 }
