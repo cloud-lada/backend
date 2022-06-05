@@ -1,4 +1,3 @@
-// Package reading provides persistence logic for sensor readings.
 package reading
 
 import (
@@ -42,7 +41,7 @@ func (pr *PostgresRepository) Save(ctx context.Context, reading Reading) error {
 // each record, the ForEachFunc is invoked. Iteration will stop when there are no more records, the context is
 // cancelled or the ForEachFunc returns an error. Readings are processed in batches of 100 at the time.
 func (pr *PostgresRepository) ForEachOnDate(ctx context.Context, date time.Time, fn ForEachFunc) error {
-	return postgres.WithinTransaction(ctx, pr.db, func(ctx context.Context, tx *sql.Tx) error {
+	return postgres.WithinReadOnlyTransaction(ctx, pr.db, func(ctx context.Context, tx *sql.Tx) error {
 		const cursorQuery = `
 			DECLARE reading_cursor CURSOR FOR 
 			    SELECT sensor, value, timestamp FROM reading

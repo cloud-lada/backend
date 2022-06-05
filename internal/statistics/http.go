@@ -44,5 +44,5 @@ func (h *HTTP) Latest(w http.ResponseWriter, r *http.Request) {
 
 // Register the HTTP routes into the given router.
 func (h *HTTP) Register(router *mux.Router) {
-	router.HandleFunc("/api/statistics/latest", h.Latest).Methods(http.MethodGet)
+	router.HandleFunc("/statistics/latest", h.Latest).Methods(http.MethodGet)
 }

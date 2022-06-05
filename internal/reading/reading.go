@@ -1,3 +1,5 @@
+// Package reading provides the full application stack for sensor readings. Including transport, persistence and
+// event handling.
 package reading
 
 import (

@@ -28,7 +28,7 @@ func (r *PostgresRepository) Latest(ctx context.Context) (Statistics, error) {
 	var stats Statistics
 	var err error
 
-	err = postgres.WithinTransaction(ctx, r.db, func(ctx context.Context, tx *sql.Tx) error {
+	err = postgres.WithinReadOnlyTransaction(ctx, r.db, func(ctx context.Context, tx *sql.Tx) error {
 		stats.Speed, err = r.latestReading(ctx, tx, "speed")
 		if err != nil {
 			return err

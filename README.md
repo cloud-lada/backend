@@ -74,7 +74,8 @@ The api accepts a small number of command-line flags to modify its behaviour:
 
 #### Endpoints
 
-* `/api/statistics/latest` (GET) - Returns the latest sensor data
+* `/api/statistics/latest` (GET) - Returns the latest sensor data.
+* `/api/location/latest` (GET) - Returns the latest location data.
 
 ## CI
 
