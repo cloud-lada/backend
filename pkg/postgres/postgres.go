@@ -70,9 +70,20 @@ type TransactionFunc func(ctx context.Context, tx *sql.Tx) error
 
 // WithinTransaction invokes the TransactionFunc, providing it an sql.Tx transaction to perform SQL operations
 // against. If the TransactionFunc returns a non-nil error, the transaction is rolled back. Otherwise, it is
-// committed.
+// committed. If the transaction is intended to be read-only, use WithinReadOnlyTransaction.
 func WithinTransaction(ctx context.Context, db *sql.DB, fn TransactionFunc) error {
-	tx, err := db.BeginTx(ctx, nil)
+	return withinTransaction(ctx, db, &sql.TxOptions{}, fn)
+}
+
+// WithinReadOnlyTransaction invokes the TransactionFunc, providing it an sql.Tx transaction to perform SQL operations
+// against. If the TransactionFunc returns a non-nil error, the transaction is rolled back. Otherwise, it is
+// committed. If the transaction is intended to include write operations, use WithinTransaction.
+func WithinReadOnlyTransaction(ctx context.Context, db *sql.DB, fn TransactionFunc) error {
+	return withinTransaction(ctx, db, &sql.TxOptions{ReadOnly: true}, fn)
+}
+
+func withinTransaction(ctx context.Context, db *sql.DB, opts *sql.TxOptions, fn TransactionFunc) error {
+	tx, err := db.BeginTx(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}

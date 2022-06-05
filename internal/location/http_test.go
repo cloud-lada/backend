@@ -1,4 +1,4 @@
-package statistics_test
+package location_test
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/cloud-lada/backend/internal/statistics"
+	"github.com/cloud-lada/backend/internal/location"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,18 +18,16 @@ func TestHTTP_Latest(t *testing.T) {
 
 	tt := []struct {
 		Name         string
-		Expected     statistics.Statistics
+		Expected     location.Location
 		Error        error
 		ExpectsError bool
 		ExpectedCode int
 	}{
 		{
-			Name: "It should return the latest statistics",
-			Expected: statistics.Statistics{
-				Speed:             10,
-				Fuel:              11,
-				EngineTemperature: 12,
-				Revolutions:       13,
+			Name: "It should return the latest location",
+			Expected: location.Location{
+				Longitude: 50,
+				Latitude:  51,
 			},
 			ExpectedCode: http.StatusOK,
 		},
@@ -43,14 +41,14 @@ func TestHTTP_Latest(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			repo := &MockRepository{stats: tc.Expected, err: tc.Error}
-			api := statistics.NewHTTP(repo)
+			repo := &MockRepository{location: tc.Expected, err: tc.Error}
+			api := location.NewHTTP(repo)
 
 			router := mux.NewRouter()
 			api.Register(router)
 
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/statistics/latest", nil)
+			r := httptest.NewRequest(http.MethodGet, "/location/latest", nil)
 
 			router.ServeHTTP(w, r)
 			assert.EqualValues(t, tc.ExpectedCode, w.Code)
@@ -58,7 +56,7 @@ func TestHTTP_Latest(t *testing.T) {
 				return
 			}
 
-			var actual statistics.Statistics
+			var actual location.Location
 			require.NoError(t, json.NewDecoder(w.Body).Decode(&actual))
 			assert.EqualValues(t, tc.Expected, actual)
 		})

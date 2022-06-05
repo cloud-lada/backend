@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/cloud-lada/backend/internal/location"
 	"github.com/cloud-lada/backend/internal/statistics"
 	"github.com/cloud-lada/backend/pkg/postgres"
 	"github.com/gorilla/mux"
@@ -38,9 +39,10 @@ func main() {
 
 			logger := log.Default()
 			router := mux.NewRouter()
+			api := router.PathPrefix("/api").Subrouter()
 
-			api := statistics.NewHTTP(statistics.NewPostgresRepository(db))
-			api.Register(router)
+			statistics.NewHTTP(statistics.NewPostgresRepository(db)).Register(api)
+			location.NewHTTP(location.NewPostgresRepository(db)).Register(api)
 
 			svr := &http.Server{
 				Addr:    fmt.Sprint(":", port),
