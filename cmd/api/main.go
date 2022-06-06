@@ -11,6 +11,7 @@ import (
 
 	"github.com/cloud-lada/backend/internal/location"
 	"github.com/cloud-lada/backend/internal/statistics"
+	"github.com/cloud-lada/backend/internal/status"
 	"github.com/cloud-lada/backend/pkg/postgres"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -43,6 +44,7 @@ func main() {
 
 			statistics.NewHTTP(statistics.NewPostgresRepository(db)).Register(api)
 			location.NewHTTP(location.NewPostgresRepository(db)).Register(api)
+			status.NewHTTP(status.NewPostgresRepository(db)).Register(api)
 
 			svr := &http.Server{
 				Addr:    fmt.Sprint(":", port),

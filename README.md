@@ -76,6 +76,7 @@ The api accepts a small number of command-line flags to modify its behaviour:
 
 * `/api/statistics/latest` (GET) - Returns the latest sensor data.
 * `/api/location/latest` (GET) - Returns the latest location data.
+* `/api/status` (GET) - Returns information on the freshness of reading data.
 
 ## CI
 
