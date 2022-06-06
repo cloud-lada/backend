@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/cloud-lada/backend/pkg/postgres"
 )
 
@@ -29,29 +30,29 @@ func (r *PostgresRepository) Latest(ctx context.Context) (Statistics, error) {
 	var err error
 
 	err = postgres.WithinReadOnlyTransaction(ctx, r.db, func(ctx context.Context, tx *sql.Tx) error {
-		stats.Speed, err = r.latestReading(ctx, tx, "speed")
+		stats.Speed, err = r.latestReading(ctx, tx, reading.SensorTypeSpeed)
 		if err != nil {
 			return err
 		}
 
-		stats.Fuel, err = r.latestReading(ctx, tx, "fuel")
+		stats.Fuel, err = r.latestReading(ctx, tx, reading.SensorTypeFuel)
 		if err != nil {
 			return err
 		}
 
-		stats.EngineTemperature, err = r.latestReading(ctx, tx, "engine_temperature")
+		stats.EngineTemperature, err = r.latestReading(ctx, tx, reading.SensorTypeEngineTemperature)
 		if err != nil {
 			return err
 		}
 
-		stats.Revolutions, err = r.latestReading(ctx, tx, "revolution")
+		stats.Revolutions, err = r.latestReading(ctx, tx, reading.SensorTypeRevolution)
 		return err
 	})
 
 	return stats, err
 }
 
-func (r *PostgresRepository) latestReading(ctx context.Context, tx *sql.Tx, sensor string) (float64, error) {
+func (r *PostgresRepository) latestReading(ctx context.Context, tx *sql.Tx, sensor reading.SensorType) (float64, error) {
 	const q = `
 		SELECT value FROM reading
 		WHERE sensor = $1

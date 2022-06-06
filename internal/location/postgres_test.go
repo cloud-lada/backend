@@ -26,12 +26,12 @@ func TestPostgresRepository_Latest(t *testing.T) {
 	// Insert readings that we can query
 	seed := []reading.Reading{
 		{
-			Sensor:    "location_latitude",
+			Sensor:    reading.SensorTypeLocationLatitude,
 			Value:     50,
 			Timestamp: time.Now(),
 		},
 		{
-			Sensor:    "location_longitude",
+			Sensor:    reading.SensorTypeLocationLongitude,
 			Value:     51,
 			Timestamp: time.Now(),
 		},

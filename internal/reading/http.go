@@ -34,16 +34,27 @@ func NewHTTP(events EventWriter, logger *log.Logger) *HTTP {
 	}
 }
 
+type (
+	// The IngestResponse type is the response DTO when calling HTTP.Ingest. It contains an array of all readings
+	// that failed validation.
+	IngestResponse struct {
+		Invalid []Reading `json:"invalid,omitempty"`
+	}
+)
+
 // Ingest readings from the request body, publishing each onto the configured EventWriter. This method expects
 // the request body to contain a JSON stream of individual readings. Each reading is validated then published.
 func (h *HTTP) Ingest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	decoder := json.NewDecoder(r.Body)
 
+	var resp IngestResponse
+
 	// For efficiency, read the contents of the stream one JSON-object at a time. This will allow the server
 	// to publish readings without loading the entire payload in-memory. It could be that we go substantial
 	// amounts of time without an internet connection so there's a possibility of large uploads. Several days
 	// worth of readings could trigger an OOM.
+ingest:
 	for {
 		select {
 		case <-ctx.Done():
@@ -56,12 +67,12 @@ func (h *HTTP) Ingest(w http.ResponseWriter, r *http.Request) {
 			err := decoder.Decode(&request)
 			switch {
 			case errors.Is(err, io.EOF):
-				return
+				break ingest
 			case err != nil:
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			case !request.Valid():
-				h.logger.Println("Invalid reading:", request)
+				resp.Invalid = append(resp.Invalid, request)
 				continue
 			}
 
@@ -78,6 +89,16 @@ func (h *HTTP) Ingest(w http.ResponseWriter, r *http.Request) {
 
 			h.logger.Println("Ingested reading:", request)
 		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if len(resp.Invalid) > 0 {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 

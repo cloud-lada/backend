@@ -31,17 +31,17 @@ func TestDumper_Dump(t *testing.T) {
 			Date: time.Now(),
 			Seed: []reading.Reading{
 				{
-					Sensor:    "speed",
+					Sensor:    reading.SensorTypeSpeed,
 					Value:     100,
 					Timestamp: time.Now().UTC(),
 				},
 				{
-					Sensor:    "speed",
+					Sensor:    reading.SensorTypeSpeed,
 					Value:     200,
 					Timestamp: time.Now().UTC(),
 				},
 				{
-					Sensor:    "speed",
+					Sensor:    reading.SensorTypeSpeed,
 					Value:     300,
 					Timestamp: time.Now().UTC(),
 				},
