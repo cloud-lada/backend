@@ -26,22 +26,22 @@ func TestPostgresRepository_Latest(t *testing.T) {
 	// Insert readings that we can query
 	seed := []reading.Reading{
 		{
-			Sensor:    "speed",
+			Sensor:    reading.SensorTypeSpeed,
 			Value:     10,
 			Timestamp: time.Now(),
 		},
 		{
-			Sensor:    "fuel",
+			Sensor:    reading.SensorTypeFuel,
 			Value:     50,
 			Timestamp: time.Now(),
 		},
 		{
-			Sensor:    "engine_temperature",
+			Sensor:    reading.SensorTypeEngineTemperature,
 			Value:     30,
 			Timestamp: time.Now(),
 		},
 		{
-			Sensor:    "revolution",
+			Sensor:    reading.SensorTypeRevolution,
 			Value:     1000,
 			Timestamp: time.Now(),
 		},

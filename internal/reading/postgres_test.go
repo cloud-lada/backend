@@ -51,12 +51,12 @@ func TestPostgresRepository_ForEachOnDate(t *testing.T) {
 	now := time.Now().UTC()
 	readings := []reading.Reading{
 		{
-			Sensor:    "speed",
+			Sensor:    reading.SensorTypeSpeed,
 			Value:     50,
 			Timestamp: now.Add(-time.Hour * 24),
 		},
 		{
-			Sensor:    "speed",
+			Sensor:    reading.SensorTypeSpeed,
 			Value:     100,
 			Timestamp: now,
 		},

@@ -30,12 +30,12 @@ func TestHTTP_Ingest(t *testing.T) {
 			ExpectedCode: http.StatusOK,
 			Readings: []reading.Reading{
 				{
-					Sensor:    "speed",
+					Sensor:    reading.SensorTypeSpeed,
 					Value:     65,
 					Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
 				},
 				{
-					Sensor:    "speed",
+					Sensor:    reading.SensorTypeSpeed,
 					Value:     70,
 					Timestamp: time.Date(2022, 1, 1, 0, 1, 0, 0, time.UTC),
 				},
@@ -47,7 +47,23 @@ func TestHTTP_Ingest(t *testing.T) {
 			PublishError: io.EOF,
 			Readings: []reading.Reading{
 				{
-					Sensor:    "speed",
+					Sensor:    reading.SensorTypeSpeed,
+					Value:     65,
+					Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
+			Name:         "It should return bad request if one or more readings are invalid",
+			ExpectedCode: http.StatusBadRequest,
+			Readings: []reading.Reading{
+				{
+					Sensor:    reading.SensorTypeSpeed,
+					Value:     65,
+					Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
+				},
+				{
+					Sensor:    "invalid_sensor",
 					Value:     65,
 					Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
 				},

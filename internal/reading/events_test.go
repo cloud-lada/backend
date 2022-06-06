@@ -26,12 +26,12 @@ func TestEventHandler_HandleEvent(t *testing.T) {
 		{
 			Name: "It should store a reading",
 			Data: marshal(t, reading.Reading{
-				Sensor:    "speed",
+				Sensor:    reading.SensorTypeSpeed,
 				Value:     100,
 				Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
 			}),
 			Expected: reading.Reading{
-				Sensor:    "speed",
+				Sensor:    reading.SensorTypeSpeed,
 				Value:     100,
 				Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
 			},
@@ -44,7 +44,7 @@ func TestEventHandler_HandleEvent(t *testing.T) {
 		{
 			Name: "It should return repository errors",
 			Data: marshal(t, reading.Reading{
-				Sensor:    "speed",
+				Sensor:    reading.SensorTypeSpeed,
 				Value:     100,
 				Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
 			}),
