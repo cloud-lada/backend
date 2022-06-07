@@ -96,7 +96,9 @@ func TestPostgresRepository_ForDate(t *testing.T) {
 
 		actual, err := stats.ForDate(ctx, date, reading.SensorTypeSpeed)
 		require.NoError(t, err)
-		require.Len(t, actual, 4)
+
+		// We expect 96 readings for 15 minute increments over 24 hours.
+		require.Len(t, actual, 96)
 
 		for _, elem := range actual {
 			assert.EqualValues(t, reading.SensorTypeSpeed, elem.Sensor)
