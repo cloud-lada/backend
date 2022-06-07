@@ -81,8 +81,18 @@ func (r *PostgresRepository) latestReading(ctx context.Context, tx *sql.Tx, sens
 func (r *PostgresRepository) ForDate(ctx context.Context, date time.Time, sensor reading.SensorType) ([]Statistic, error) {
 	out := make([]Statistic, 0)
 	err := postgres.WithinReadOnlyTransaction(ctx, r.db, func(ctx context.Context, tx *sql.Tx) error {
+		// This query returns the average value of the sensor over 15 minute increments. It uses the
+		// time_bucket_gapfill function to automatically fill in times for the rest of the day when
+		// the dataset is incomplete. It uses locf to set the values for the missing timestamps to the
+		// previous known value. The time range is inferred by the WHERE clause of the query.
+		//
+		// https://docs.timescale.com/api/latest/hyperfunctions/gapfilling-interpolation/time_bucket_gapfill
+		// https://docs.timescale.com/api/latest/hyperfunctions/gapfilling-interpolation/locf
 		const q = `
-			SELECT sensor, AVG(value) as value, time_bucket('15 minutes', timestamp) AS bucket
+			SELECT 
+				sensor, 
+				locf(AVG(value)),
+				time_bucket_gapfill('15 minutes', timestamp) AS bucket
 			FROM reading 
 			WHERE 
 				sensor = $1
