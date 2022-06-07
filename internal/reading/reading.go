@@ -46,6 +46,11 @@ func (r Reading) String() string {
 // Valid returns true if the Reading is deemed to be in a valid state. This means a valid sensor type and a non-zero
 // timestamp.
 func (r Reading) Valid() bool {
-	_, ok := validSensorTypes[r.Sensor]
-	return ok && !r.Timestamp.IsZero()
+	return r.Sensor.Valid() && !r.Timestamp.IsZero()
+}
+
+// Valid returns true if the SensorType is one of the valid types of sensor.
+func (st SensorType) Valid() bool {
+	_, ok := validSensorTypes[st]
+	return ok
 }

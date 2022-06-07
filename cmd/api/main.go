@@ -12,6 +12,7 @@ import (
 	"github.com/cloud-lada/backend/internal/location"
 	"github.com/cloud-lada/backend/internal/statistics"
 	"github.com/cloud-lada/backend/internal/status"
+	"github.com/cloud-lada/backend/pkg/closers"
 	"github.com/cloud-lada/backend/pkg/postgres"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -37,6 +38,7 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("failed to connect to database: %w", err)
 			}
+			defer closers.Close(db)
 
 			logger := log.Default()
 			router := mux.NewRouter()

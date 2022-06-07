@@ -75,6 +75,7 @@ The api accepts a small number of command-line flags to modify its behaviour:
 #### Endpoints
 
 * `/api/statistics/latest` (GET) - Returns the latest sensor data.
+* `/api/statistics/sensor/{sensor}/date/{date}` (GET) - Returns time bucketed data for a single sensor for a given date. Date is expected to be `YYYY-MM-DD`.
 * `/api/location/latest` (GET) - Returns the latest location data.
 * `/api/status` (GET) - Returns information on the freshness of reading data.
 

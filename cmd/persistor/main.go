@@ -9,10 +9,10 @@ import (
 	"syscall"
 
 	"github.com/cloud-lada/backend/internal/reading"
+	"github.com/cloud-lada/backend/pkg/closers"
 	"github.com/cloud-lada/backend/pkg/event"
 	"github.com/cloud-lada/backend/pkg/postgres"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 var version = "dev"
@@ -34,31 +34,19 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("failed to connect to database: %w", err)
 			}
-
-			logger := log.Default()
+			defer closers.Close(db)
 
 			reader, err := event.NewReader(ctx, eventReaderURL)
 			if err != nil {
 				return fmt.Errorf("failed to create reader: %w", err)
 			}
+			defer closers.Close(reader)
 
+			logger := log.Default()
 			handler := reading.NewEventHandler(reading.NewPostgresRepository(db), logger)
 
-			grp, ctx := errgroup.WithContext(ctx)
-			grp.Go(func() error {
-				return reader.Read(ctx, handler.HandleEvent)
-			})
-			grp.Go(func() error {
-				<-ctx.Done()
-				return reader.Close()
-			})
-			grp.Go(func() error {
-				<-ctx.Done()
-				return db.Close()
-			})
-
 			logger.Println("Listening for events from", eventReaderURL)
-			return grp.Wait()
+			return reader.Read(ctx, handler.HandleEvent)
 		},
 	}
 
