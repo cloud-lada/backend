@@ -78,7 +78,10 @@ func TestPostgresRepository_ForDate(t *testing.T) {
 	stats := statistics.NewPostgresRepository(db)
 
 	var seed []reading.Reading
-	for i := 0; i < 60; i++ {
+
+	// Create readings for 1AM, this allows us to test the gapfilling for the hours before and
+	// after.
+	for i := 60; i < 120; i++ {
 		ts := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
 		seed = append(seed, reading.Reading{
 			Sensor:    reading.SensorTypeSpeed,
@@ -102,7 +105,14 @@ func TestPostgresRepository_ForDate(t *testing.T) {
 
 		for _, elem := range actual {
 			assert.EqualValues(t, reading.SensorTypeSpeed, elem.Sensor)
-			assert.EqualValues(t, 10, elem.Value)
+
+			// We only set values for the 1am hour, so anything before and after that should have a value of zero.
+			if elem.Timestamp.Hour() == 1 {
+				assert.EqualValues(t, float64(10), elem.Value)
+			} else {
+				assert.EqualValues(t, float64(0), elem.Value)
+			}
+
 			assert.NotZero(t, elem.Timestamp)
 		}
 	})

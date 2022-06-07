@@ -89,8 +89,8 @@ func withinTransaction(ctx context.Context, db *sql.DB, opts *sql.TxOptions, fn 
 	}
 
 	if err = fn(ctx, tx); err != nil {
-		if err = tx.Rollback(); err != nil {
-			return fmt.Errorf("failed to roll back transaction: %w", err)
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("failed to roll back transaction: %w", rollbackErr)
 		}
 
 		return err

@@ -38,7 +38,7 @@ func (b *Bucket) Close() error {
 // NewWriter returns an io.WriteCloser implementation that will write binary data as a blob within the Bucket under
 // the specified name.
 func (b *Bucket) NewWriter(ctx context.Context, name string) (io.WriteCloser, error) {
-	writer, err := b.bucket.NewWriter(ctx, name, &blob.WriterOptions{})
+	writer, err := b.bucket.NewWriter(ctx, name, nil)
 	if err != nil {
 		return nil, err
 	}
