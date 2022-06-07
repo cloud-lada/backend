@@ -64,3 +64,44 @@ func TestPostgresRepository_Latest(t *testing.T) {
 		assert.EqualValues(t, expected, actual)
 	})
 }
+
+func TestPostgresRepository_ForDate(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+		return
+	}
+
+	ctx := testutil.Context(t)
+	db := testutil.Postgres(t, ctx)
+
+	readings := reading.NewPostgresRepository(db)
+	stats := statistics.NewPostgresRepository(db)
+
+	var seed []reading.Reading
+	for i := 0; i < 60; i++ {
+		ts := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
+		seed = append(seed, reading.Reading{
+			Sensor:    reading.SensorTypeSpeed,
+			Value:     10,
+			Timestamp: ts.Add(time.Minute * time.Duration(i)),
+		})
+	}
+
+	for _, s := range seed {
+		require.NoError(t, readings.Save(ctx, s))
+	}
+
+	t.Run("It should return time bucketed statistics", func(t *testing.T) {
+		date := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		actual, err := stats.ForDate(ctx, date, reading.SensorTypeSpeed)
+		require.NoError(t, err)
+		require.Len(t, actual, 4)
+
+		for _, elem := range actual {
+			assert.EqualValues(t, reading.SensorTypeSpeed, elem.Sensor)
+			assert.EqualValues(t, 10, elem.Value)
+			assert.NotZero(t, elem.Timestamp)
+		}
+	})
+}

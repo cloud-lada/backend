@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log"
 	"testing"
 	"time"
 
@@ -65,7 +64,6 @@ func TestDumper_Dump(t *testing.T) {
 				Date:     tc.Date,
 				Readings: readings,
 				Blobs:    blobs,
-				Logger:   log.New(io.Discard, "", log.Flags()),
 			}
 
 			err := dump.New(config).Dump(ctx)

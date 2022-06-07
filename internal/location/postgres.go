@@ -9,6 +9,8 @@ import (
 )
 
 type (
+	// The PostgresRepository is a Repository implementation that queries location data from a postgres-compatible
+	// database.
 	PostgresRepository struct {
 		db *sql.DB
 	}

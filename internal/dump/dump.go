@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"github.com/cloud-lada/backend/internal/reading"
+	"github.com/cloud-lada/backend/pkg/closers"
 )
 
 type (
@@ -19,7 +19,6 @@ type (
 		Date     time.Time
 		Readings Repository
 		Blobs    Sink
-		Logger   *log.Logger
 	}
 
 	// The Repository interface describes types that can iterate over reading data in a database.
@@ -36,7 +35,6 @@ type (
 	Dumper struct {
 		readings Repository
 		blobs    Sink
-		logger   *log.Logger
 		date     time.Time
 	}
 )
@@ -47,7 +45,6 @@ func New(config Config) *Dumper {
 	return &Dumper{
 		readings: config.Readings,
 		blobs:    config.Blobs,
-		logger:   config.Logger,
 		// We want to get all the data for a given day, so we need to start at 00:00:00 for that specific day.
 		date: time.Date(config.Date.Year(), config.Date.Month(), config.Date.Day(), 0, 0, 0, 0, config.Date.Location()),
 	}
@@ -61,19 +58,13 @@ func (d *Dumper) Dump(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to open blob: %w", err)
 	}
-	defer d.close(blob)
+	defer closers.Close(blob)
 
 	archive := gzip.NewWriter(blob)
-	defer d.close(archive)
+	defer closers.Close(archive)
 
 	encoder := json.NewEncoder(archive)
 	return d.readings.ForEachOnDate(ctx, d.date, func(ctx context.Context, reading reading.Reading) error {
 		return encoder.Encode(reading)
 	})
-}
-
-func (d *Dumper) close(c io.Closer) {
-	if err := c.Close(); err != nil {
-		d.logger.Println(err.Error())
-	}
 }

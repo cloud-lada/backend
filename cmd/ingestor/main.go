@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/cloud-lada/backend/internal/reading"
+	"github.com/cloud-lada/backend/pkg/closers"
 	"github.com/cloud-lada/backend/pkg/event"
 	"github.com/cloud-lada/backend/pkg/middleware"
 	"github.com/gorilla/mux"
@@ -37,9 +38,9 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("failed to connect to event bus: %w", err)
 			}
+			defer closers.Close(writer)
 
 			logger := log.Default()
-
 			router := mux.NewRouter()
 			router.Use(middleware.APIKey(apiKey))
 
@@ -58,10 +59,6 @@ func main() {
 			grp.Go(func() error {
 				<-ctx.Done()
 				return svr.Shutdown(context.Background())
-			})
-			grp.Go(func() error {
-				<-ctx.Done()
-				return writer.Close()
 			})
 
 			logger.Println("Server started on port", port)

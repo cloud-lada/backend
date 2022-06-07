@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/gorilla/mux"
 )
 
@@ -18,6 +20,7 @@ type (
 	// storage.
 	Repository interface {
 		Latest(ctx context.Context) (Statistics, error)
+		ForDate(ctx context.Context, date time.Time, sensor reading.SensorType) ([]Statistic, error)
 	}
 )
 
@@ -42,7 +45,38 @@ func (h *HTTP) Latest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ForDate handles an inbound HTTP GET request that returns an array of sensor statistics for a specific date
+// from the Repository.
+func (h *HTTP) ForDate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	sensor := reading.SensorType(vars["sensor"])
+	if !sensor.Valid() {
+		http.Error(w, "invalid sensor type", http.StatusBadRequest)
+		return
+	}
+
+	date, err := time.Parse("2006-02-01", vars["date"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	stats, err := h.statistics.ForDate(r.Context(), date, sensor)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(stats); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 // Register the HTTP routes into the given router.
 func (h *HTTP) Register(router *mux.Router) {
 	router.HandleFunc("/statistics/latest", h.Latest).Methods(http.MethodGet)
+	router.HandleFunc("/statistics/sensor/{sensor}/date/{date}", h.ForDate).Methods(http.MethodGet)
 }

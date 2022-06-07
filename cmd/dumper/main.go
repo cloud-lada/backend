@@ -12,9 +12,9 @@ import (
 	"github.com/cloud-lada/backend/internal/dump"
 	"github.com/cloud-lada/backend/internal/reading"
 	"github.com/cloud-lada/backend/pkg/blob"
+	"github.com/cloud-lada/backend/pkg/closers"
 	"github.com/cloud-lada/backend/pkg/postgres"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 var version = "dev"
@@ -41,35 +41,23 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("failed to connect to database: %w", err)
 			}
+			defer closers.Close(db)
 
 			blobs, err := blob.Open(ctx, blobStoreURL)
 			if err != nil {
 				return fmt.Errorf("failed to connect to blob storage: %w", err)
 			}
+			defer closers.Close(db)
 
 			logger := log.Default()
 			dumper := dump.New(dump.Config{
 				Date:     date,
 				Readings: reading.NewPostgresRepository(db),
 				Blobs:    blobs,
-				Logger:   logger,
-			})
-
-			grp, ctx := errgroup.WithContext(ctx)
-			grp.Go(func() error {
-				return dumper.Dump(ctx)
-			})
-			grp.Go(func() error {
-				<-ctx.Done()
-				return db.Close()
-			})
-			grp.Go(func() error {
-				<-ctx.Done()
-				return blobs.Close()
 			})
 
 			logger.Println("Creating dump for", dumpDate)
-			return grp.Wait()
+			return dumper.Dump(ctx)
 		},
 	}
 

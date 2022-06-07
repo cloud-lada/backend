@@ -23,7 +23,7 @@ func TestPostgresRepository_Save(t *testing.T) {
 
 	t.Run("It should store a reading", func(t *testing.T) {
 		assert.NoError(t, repo.Save(ctx, reading.Reading{
-			Sensor:    "test",
+			Sensor:    reading.SensorTypeSpeed,
 			Value:     100,
 			Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
 		}))
@@ -31,7 +31,7 @@ func TestPostgresRepository_Save(t *testing.T) {
 
 	t.Run("It should not error for a duplicate reading", func(t *testing.T) {
 		assert.NoError(t, repo.Save(ctx, reading.Reading{
-			Sensor:    "test",
+			Sensor:    reading.SensorTypeSpeed,
 			Value:     100,
 			Timestamp: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
 		}))

@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/cloud-lada/backend/internal/reading"
+	"github.com/cloud-lada/backend/pkg/closers"
 	"github.com/cloud-lada/backend/pkg/postgres"
 )
 
@@ -72,4 +74,41 @@ func (r *PostgresRepository) latestReading(ctx context.Context, tx *sql.Tx, sens
 	default:
 		return value, nil
 	}
+}
+
+// ForDate queries the database for time-bucketed statistics on a given date for a sensor type. Statistics are averaged
+// in 15 minute intervals.
+func (r *PostgresRepository) ForDate(ctx context.Context, date time.Time, sensor reading.SensorType) ([]Statistic, error) {
+	out := make([]Statistic, 0)
+	err := postgres.WithinReadOnlyTransaction(ctx, r.db, func(ctx context.Context, tx *sql.Tx) error {
+		const q = `
+			SELECT sensor, AVG(value) as value, time_bucket('15 minutes', timestamp) AS bucket
+			FROM reading 
+			WHERE 
+				sensor = $1
+				AND timestamp >= $2::DATE 
+				AND timestamp < ($2::DATE + INTERVAL '1 day')
+			GROUP BY bucket, sensor
+			ORDER BY bucket ASC
+		`
+
+		rows, err := tx.QueryContext(ctx, q, sensor, date)
+		if err != nil {
+			return err
+		}
+		defer closers.Close(rows)
+
+		for rows.Next() {
+			var stat Statistic
+			if err = rows.Scan(&stat.Sensor, &stat.Value, &stat.Timestamp); err != nil {
+				return err
+			}
+
+			out = append(out, stat)
+		}
+
+		return rows.Err()
+	})
+
+	return out, err
 }
