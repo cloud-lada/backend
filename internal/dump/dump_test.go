@@ -72,7 +72,7 @@ func TestDumper_Dump(t *testing.T) {
 				return
 			}
 
-			assert.EqualValues(t, tc.Date.Format("2006-02-01.json.gz"), blobs.name)
+			assert.EqualValues(t, tc.Date.Format("2006-01-02.json.gz"), blobs.name)
 
 			reader, err := gzip.NewReader(blobs.buffer)
 			require.NoError(t, err)

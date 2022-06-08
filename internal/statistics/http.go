@@ -56,7 +56,7 @@ func (h *HTTP) ForDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date, err := time.Parse("2006-02-01", vars["date"])
+	date, err := time.Parse("2006-01-02", vars["date"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

@@ -53,7 +53,7 @@ func New(config Config) *Dumper {
 // Dump JSON-encoded readings for the configured date into the blob storage provider. Dumps will be JSON streams
 // similar to how they are originally presented to the ingestor.
 func (d *Dumper) Dump(ctx context.Context) error {
-	name := d.date.Format("2006-02-01.json.gz")
+	name := d.date.Format("2006-01-02.json.gz")
 	blob, err := d.blobs.NewWriter(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to open blob: %w", err)
@@ -65,6 +65,10 @@ func (d *Dumper) Dump(ctx context.Context) error {
 
 	encoder := json.NewEncoder(archive)
 	return d.readings.ForEachOnDate(ctx, d.date, func(ctx context.Context, reading reading.Reading) error {
-		return encoder.Encode(reading)
+		if err = encoder.Encode(reading); err != nil {
+			return err
+		}
+
+		return archive.Flush()
 	})
 }

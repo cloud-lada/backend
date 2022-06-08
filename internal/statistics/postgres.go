@@ -90,7 +90,8 @@ func (r *PostgresRepository) ForDate(ctx context.Context, date time.Time, sensor
 		// https://docs.timescale.com/api/latest/hyperfunctions/gapfilling-interpolation/locf
 		const q = `
 			SELECT 
-				sensor, 
+				sensor,
+				COALESCE(AVG(value), 0),
 				locf(AVG(value)),
 				time_bucket_gapfill('15 minutes', timestamp) AS bucket
 			FROM reading 
@@ -108,16 +109,24 @@ func (r *PostgresRepository) ForDate(ctx context.Context, date time.Time, sensor
 		}
 		defer closers.Close(rows)
 
+		var locf sql.NullFloat64
 		for rows.Next() {
 			var stat Statistic
-			if err = rows.Scan(&stat.Sensor, &stat.Value, &stat.Timestamp); err != nil {
+
+			// We don't actually care about the locf value, but it allows timescale to fill in all the missing
+			// intervals with a NULL value that we coalesce to zero. So we scan it and throw it away.
+			if err = rows.Scan(&stat.Sensor, &stat.Value, &locf, &stat.Timestamp); err != nil {
 				return err
 			}
 
 			out = append(out, stat)
 		}
 
-		return rows.Err()
+		if err = rows.Err(); err != nil {
+			return err
+		}
+
+		return rows.Close()
 	})
 
 	return out, err
