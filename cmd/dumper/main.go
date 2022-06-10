@@ -20,6 +20,8 @@ import (
 var version = "dev"
 
 func main() {
+	const dateFormat = "2006-01-02"
+
 	var (
 		blobStoreURL string
 		databaseURL  string
@@ -32,7 +34,7 @@ func main() {
 		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			date, err := time.Parse("2006-02-01", dumpDate)
+			date, err := time.Parse(dateFormat, dumpDate)
 			if err != nil {
 				return fmt.Errorf("invalid dump date: %w", err)
 			}
@@ -64,7 +66,7 @@ func main() {
 	flags := cmd.PersistentFlags()
 	flags.StringVar(&blobStoreURL, "blob-store-url", "", "The URL of the blob store to persist dumps to")
 	flags.StringVar(&databaseURL, "database-url", "", "The URL of the database to read data from")
-	flags.StringVar(&dumpDate, "dump-date", time.Now().Add(-time.Hour*24).Format("2006-02-01"), "The date to dump data for")
+	flags.StringVar(&dumpDate, "dump-date", time.Now().Add(-time.Hour*24).Format(dateFormat), "The date to dump data for, expects YYYY-MM-DD format")
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill, syscall.SIGTERM)
 	if err := cmd.ExecuteContext(ctx); err != nil {
